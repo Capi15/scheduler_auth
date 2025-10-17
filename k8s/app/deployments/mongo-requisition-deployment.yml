@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-requisition
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-requisition
+  template:
+    metadata:
+      labels:
+        app: mongo-requisition
+    spec:
+      containers:
+        - name: mongo-requisition
+          image: cmerbruno/custom-mongo:v01
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: "mongoadmin"
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "mongoadmin"
+          volumeMounts:
+            - name: mongo-data-requisition
+              mountPath: /data/db
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      volumes:
+        - name: mongo-data-requisition
+          persistentVolumeClaim:
+            claimName: mongo-data-requisition-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-requisition
+spec:
+  selector:
+    app: mongo-requisition
+  ports:
+    - protocol: TCP
+      port: 2035
+      targetPort: 27017
+  type: ClusterIP

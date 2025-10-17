@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongoku
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongoku
+  template:
+    metadata:
+      labels:
+        app: mongoku
+    spec:
+      containers:
+        - name: mongoku
+          image: huggingface/mongoku:latest
+          ports:
+            - containerPort: 3100
+          env:
+            - name: MONGOKU_DEFAULT_CONNECTIONS_FILE
+              value: "/app/data/connections.json"
+          volumeMounts:
+            - name: mongoku-data
+              mountPath: /app/data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      volumes:
+        - name: mongoku-data
+          persistentVolumeClaim:
+            claimName: mongoku-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongoku
+spec:
+  selector:
+    app: mongoku
+  type: NodePort 
+  ports:
+    - protocol: TCP
+      port: 2032         
+      targetPort: 3100  
+      nodePort: 31032    

@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduler-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scheduler-auth
+  template:
+    metadata:
+      labels:
+        app: scheduler-auth
+    spec:
+      containers:
+        - name: scheduler-auth
+          image: lmtp/scheduler-auth:latest
+          ports:
+            - containerPort: 3021
+          volumeMounts:
+            - name: uploads-storage
+              mountPath: /uploads
+          envFrom:
+            - configMapRef:
+                name: env-config-scheduler-auth
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+      volumes:
+        - name: uploads-storage
+          persistentVolumeClaim:
+            claimName: scheduler-auth-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scheduler-auth-service
+spec:
+  selector:
+    app: scheduler-auth
+  ports:
+    - protocol: TCP
+      port: 3021
+      targetPort: 3021
+  type: ClusterIP

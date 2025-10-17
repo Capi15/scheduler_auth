@@ -1,0 +1,78 @@
+# values.yaml
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: true
+  auth:
+    username: kong          # PostgreSQL username
+    password: kong          # PostgreSQL password
+    database: kong          # PostgreSQL database name
+    
+  service:
+    ports:
+      postgresql: "5432"    # PostgreSQL service port
+
+# Kong Configuration
+env:
+  database: postgres
+  KONG_PG_HOST: kong-postgresql
+  KONG_PG_PORT: 5432
+  KONG_PG_USER: kong
+  KONG_PG_PASSWORD: kong
+  KONG_PG_DATABASE: kong
+
+# Enable Kong Admin API and Manager
+admin:
+  sslVerify: "off"
+  enabled: true
+  type: LoadBalancer
+  http:
+    enabled: true
+    servicePort: 8001
+    containerPort: 8001
+  tls:
+    enabled: true
+
+    servicePort: 8444
+    containerPort: 8444
+    sslVerify: "off"
+    secretName: kong-admin-tls
+
+metrics:
+  enabled: true  # Enables Prometheus metrics
+  serviceMonitor:
+    enabled: true  # If using Prometheus Operator
+  prometheus:
+    enabled: true
+
+proxy:
+  metrics:
+    enabled: true
+    port: 8100  # Default Kong Prometheus port
+
+manager:
+  enabled: true
+  type: LoadBalancer
+  http:
+    enabled: true
+    servicePort: 8002
+    containerPort: 8002
+  tls:
+    enabled: true
+    servicePort: 8445
+    containerPort: 8445
+    sslVerify: "off"
+    secretName: kong-manager-tls
+
+# # Set secret name for PostgreSQL (if you're not using Helm-managed secrets)
+secretName: kong-postgresql
+# Enable Ingress for Admin API and Manager if you want to expose them outside the Kubernetes cluster
+# admin:
+#   ingress:
+#     enabled: true
+#     hostname: localhost
+
+# manager:
+#   ingress:
+#     enabled: true
+#     hostname: localhost

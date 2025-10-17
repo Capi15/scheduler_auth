@@ -1,0 +1,27 @@
+services:
+  adminmongo:
+    build: .
+    container_name: adminmongo
+    ports:
+      - "1234:1234"
+    volumes:
+      - ./config/app.json:/usr/src/app/config/app.json
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - scheduler-auth_default
+      - scheduler-inventory_default
+      - scheduler-requisicoes_default
+      - scheduller-events_default
+
+
+networks:
+  scheduler-auth_default:
+    external: true
+  scheduler-inventory_default:
+    external: true
+  scheduler-requisicoes_default:
+    external: true
+  scheduller-events_default:
+    external: true

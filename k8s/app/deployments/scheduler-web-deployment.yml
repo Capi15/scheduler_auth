@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduler-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scheduler-web
+  template:
+    metadata:
+      labels:
+        app: scheduler-web
+    spec:
+      containers:
+        - name: scheduler-web
+          image: lmtp/scheduler-web:latest
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: env-config-scheduler-web
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+      volumes:
+        - name: uploads-storage
+          persistentVolumeClaim:
+            claimName: scheduler-web-pvc    
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scheduler-web-service
+spec:
+  selector:
+    app: scheduler-web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduler-requisition
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scheduler-requisition
+  template:
+    metadata:
+      labels:
+        app: scheduler-requisition
+    spec:
+      containers:
+        - name: scheduler-requisition
+          image: lmtp/scheduler-requisicoes:latest
+          ports:
+            - containerPort: 3023
+          envFrom:
+            - configMapRef:
+                name: env-config-scheduler-requisition
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scheduler-requisition-service
+spec:
+  selector:
+    app: scheduler-requisition
+  ports:
+    - protocol: TCP
+      port: 3023
+      targetPort: 3023
+  type: ClusterIP

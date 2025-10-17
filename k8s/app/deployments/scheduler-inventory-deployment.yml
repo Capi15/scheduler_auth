@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduler-inventory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scheduler-inventory
+  template:
+    metadata:
+      labels:
+        app: scheduler-inventory
+    spec:
+      containers:
+        - name: scheduler-inventory
+          image: lmtp/scheduler-inventory:latest
+          ports:
+            - containerPort: 3024
+          volumeMounts:
+            - name: uploads-storage
+              mountPath: /uploads
+          envFrom:
+            - configMapRef:
+                name: env-config-scheduler-inventory
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+      volumes:
+        - name: uploads-storage
+          persistentVolumeClaim:
+            claimName: scheduler-inventory-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scheduler-inventory-service
+spec:
+  selector:
+    app: scheduler-inventory
+  ports:
+    - protocol: TCP
+      port: 3024
+      targetPort: 3024
+  type: ClusterIP

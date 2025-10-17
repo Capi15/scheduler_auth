@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-auth
+  template:
+    metadata:
+      labels:
+        app: mongo-auth
+    spec:
+      containers:
+        - name: mongo-auth
+          image: cmerbruno/custom-mongo:v01
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: "mongoadmin"
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "mongoadmin"
+          volumeMounts:
+            - name: mongo-data-auth
+              mountPath: /data/db
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      volumes:
+        - name: mongo-data-auth
+          persistentVolumeClaim:
+            claimName: mongo-data-auth-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-auth
+spec:
+  selector:
+    app: mongo-auth
+  ports:
+    - protocol: TCP
+      port: 2031
+      targetPort: 27017
+  type: ClusterIP

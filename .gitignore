@@ -1,0 +1,9 @@
+node_modules
+build
+npm-debug.log
+.env
+._env
+_docker-compose.yml
+k8s/aula
+k8s/testes
+uploads
