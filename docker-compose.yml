@@ -1,38 +1,30 @@
-services:
+version: "3.9"
 
-  mongo:
+services:
+  mongo-auth:
     image: cmerbruno/custom-mongo:v01
-    restart: always
-    container_name: mongo-scheduler-auth 
+    container_name: mongo-auth
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: mongoadmin
       MONGO_INITDB_ROOT_PASSWORD: mongoadmin
     ports:
+      # Em k8s: Service ClusterIP 2031 -> 27017. Localmente expomos igual.
       - "2031:27017"
     volumes:
-      - type: volume
-        source: mongodb_data_volume
-        target: /data/db
-        
-  mongo-express:
-    image: cmerbruno/custom-mongo-express:v02
-    container_name: mongo-express-scheduler-auth
-    restart: always
+      - mongo_data_auth:/data/db
+
+  scheduler-auth:
+    build: .
+    container_name: scheduler-auth
+    restart: unless-stopped
+    env_file:
+      - .env
     ports:
-      - "2032:8081"
-    environment:
-      ME_CONFIG_MONGODB_SERVER: mongo
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: changeme
-      #ME_CONFIG_MONGODB_AUTH_DATABASE: admin
-      ME_CONFIG_MONGODB_ADMINUSERNAME: mongoadmin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: mongoadmin
-      ME_CONFIG_MONGODB_URL: mongo://mongoadmin:mongoadmin@mongo:2031/
-      
-    depends_on:
-      - mongo
+      - "3021:3021"
+    volumes:
+      - uploads_storage:/uploads
 
 volumes:
-  mongodb_data_volume:
-    driver: local    
-    
+  mongo_data_auth:
+  uploads_storage:

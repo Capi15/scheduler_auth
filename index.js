@@ -18,7 +18,7 @@ let port=process.env.PORT || 3000;
 let uri=process.env.MONGO_CONNECTION_STRING;
 
 app.use(cors({
-  origin: process.env.REACT_URL || 'http://localhost:3000',
+  origin: '*',
   credentials: true
 }));
 
