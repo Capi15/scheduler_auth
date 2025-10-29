@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   mongo-auth:
     image: cmerbruno/custom-mongo:v01
@@ -9,22 +7,49 @@ services:
       MONGO_INITDB_ROOT_USERNAME: mongoadmin
       MONGO_INITDB_ROOT_PASSWORD: mongoadmin
     ports:
-      # Em k8s: Service ClusterIP 2031 -> 27017. Localmente expomos igual.
-      - "2031:27017"
+      - "2031:27017" 
     volumes:
-      - mongo_data_auth:/data/db
+      - ./workspace:/workspace
+      - type: volume
+        source: mongodb_data_volume
+        target: /data/db
+    healthcheck:
+      test: ["CMD-SHELL", "sleep 5 && ps aux | grep -q '[m]ongod'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
-  scheduler-auth:
-    build: .
-    container_name: scheduler-auth
-    restart: unless-stopped
-    env_file:
-      - .env
+  mongo-express:
+    image: cmerbruno/custom-mongo-express:v02
+    container_name: express_auth
+    restart: always
     ports:
-      - "3021:3021"
-    volumes:
-      - uploads_storage:/uploads
+      - "3035:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo-auth
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: changeme
+      ME_CONFIG_MONGODB_ADMINUSERNAME: mongoadmin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: mongoadmin
+      ME_CONFIG_MONGODB_URL: mongodb://mongoadmin:mongoadmin@mongo-auth:27017/?authSource=admin
+    depends_on:
+      - mongo-auth
+
+  # scheduler-auth:
+  #   build: .
+  #   container_name: scheduler-auth
+  #   restart: unless-stopped
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "3021:3021"
+  #   volumes:
+  #     - uploads_storage:/uploads
+  #   depends_on:
+  #     mongo-auth:
+  #       condition: service_healthy
 
 volumes:
-  mongo_data_auth:
+  mongodb_data_volume:
+    driver: local
   uploads_storage:
